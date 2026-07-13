@@ -6,7 +6,7 @@ import Link from "next/link";
 import { SceneRenderer } from "@/components/scene/SceneRenderer";
 import { SceneTextEditor, type SceneTextChange } from "./SceneTextEditor";
 import { SceneInspector } from "./SceneInspector";
-import { defaultTheme, presetByKey, THEME_PRESETS, type SceneTheme, type SavedPreset } from "@/lib/theme";
+import { defaultTheme, presetByKey, THEME_PRESETS, SCENE_LAYOUTS, layoutMaxWidthCss, type SceneTheme, type SavedPreset } from "@/lib/theme";
 import { FONT_REGISTRY } from "@/lib/font-registry";
 import { EFFECT_OPTIONS } from "@/components/scene/effects";
 import { randomId, type Scene } from "@/lib/content";
@@ -15,9 +15,6 @@ import { saveChapter, saveThemePreset, deleteThemePreset } from "@/app/archivist
 type SaveState = "idle" | "saving" | "saved" | "error";
 
 const INK_SWATCHES = ["#eef0f6", "#f7e5d2", "#c9a86b", "#8fa0c8", "#e07840", "#111112"];
-// Editor stage width — matches the reader's reading column so the editor is a
-// true 1:1 mirror (same wrapping, same image size, same layout).
-const STAGE_MAX = "min(620px, 100%)";
 const panelBtn: React.CSSProperties = { padding: "0.28rem 0.6rem", fontSize: "0.72rem", letterSpacing: ".04em" };
 const STICKER_PALETTE = [
   { id: "blood", label: "Blood splatter", glyph: "✹", color: "#a01810", size: 46, glow: true },
@@ -167,6 +164,7 @@ export function ChapterEditor({ chapterId, bookId, bookTitle, bookVisibility, in
     try { await deleteThemePreset(id); } catch { /* optimistic */ }
   }
 
+  const stageMax = layoutMaxWidthCss(theme.layout);
   const ambientPct = Math.round((theme.effectIntensity ?? 0.6) * 100);
   const fadePct = Math.round((theme.vignetteStrength ?? 0.35) * 100);
   const bgOn = theme.background.kind === "image";
@@ -213,7 +211,7 @@ export function ChapterEditor({ chapterId, bookId, bookTitle, bookVisibility, in
 
       {/* CENTER: live manuscript — the stage renders exactly like the reader */}
       <main className="atelier-main">
-        <div style={{ width: "100%", maxWidth: STAGE_MAX, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
+        <div style={{ width: "100%", maxWidth: stageMax, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 18, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <button className="btn" style={panelBtn} onClick={() => setLeftOpen((v) => !v)} title={leftOpen ? "Hide scenes panel" : "Show scenes panel"}>{leftOpen ? "‹ Scenes" : "☰ Scenes"}</button>
             <div>
@@ -232,7 +230,7 @@ export function ChapterEditor({ chapterId, bookId, bookTitle, bookVisibility, in
           </div>
         </div>
 
-        <div ref={pageRef} style={{ position: "relative", width: "100%", maxWidth: STAGE_MAX }}>
+        <div ref={pageRef} style={{ position: "relative", width: "100%", maxWidth: stageMax }}>
           <SceneRenderer theme={theme} minHeightVh={84} className="atelier-page" contentClassName={`leaf-ink${theme.dropCap ? " rdr-dropcap" : ""}`}>
             <SceneTextEditor key={selected.id} doc={selected.doc} html={selected.html} onEditor={setEditor} onFocus={() => setSelectedId(selected.id)} onChange={(c) => onSceneText(selected.id, c)} />
           </SceneRenderer>
@@ -264,6 +262,20 @@ export function ChapterEditor({ chapterId, bookId, bookTitle, bookVisibility, in
       <aside className="atelier-toolkit">
         <div style={{ fontFamily: "var(--font-cormorant), serif", fontSize: 22, color: "#f2ead6", marginBottom: 2 }}>Scene Theme</div>
         <div style={{ fontSize: 11, color: "rgba(232,224,205,.42)", marginBottom: 26, lineHeight: 1.5 }}>Everything here is the story&rsquo;s weather. Set it once; it travels with the scene.</div>
+
+        {/* Layout — how much of the screen this scene uses */}
+        <div className="atelier-lbl">Screen use</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 28 }}>
+          {SCENE_LAYOUTS.map((ly) => {
+            const on = (theme.layout ?? "column") === ly.key;
+            return (
+              <button key={ly.key} onClick={() => patch({ layout: ly.key })} title={ly.note} style={{ padding: "10px 6px", background: on ? "rgba(201,168,107,.12)" : "rgba(255,255,255,.02)", border: `1px solid ${on ? "rgba(201,168,107,.5)" : "rgba(232,224,205,.1)"}`, borderRadius: 5, cursor: "pointer", color: on ? "#f2ead6" : "rgba(232,224,205,.62)", textAlign: "center" }}>
+                <span style={{ display: "block", fontSize: 12 }}>{ly.label}</span>
+                <span style={{ display: "block", fontSize: 8.5, letterSpacing: ".08em", color: "rgba(232,224,205,.4)", marginTop: 2 }}>{ly.note}</span>
+              </button>
+            );
+          })}
+        </div>
 
         {/* Mood presets */}
         <div className="atelier-lbl">Mood</div>

@@ -8,6 +8,7 @@ import {
   inkStyle,
   edgeFadeBackground,
   hexWithAlpha,
+  layoutColumnPx,
   type SceneTheme,
 } from "@/lib/theme";
 import { fontStack } from "@/lib/font-registry";
@@ -47,12 +48,8 @@ type Leaf =
   | { kind: "end"; theme: SceneTheme };
 
 interface Dims {
-  colW: number;
-  colH: number;
-  padX: number;
-  padY: number;
-  pw: number;
-  ph: number;
+  vw: number;
+  vh: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -76,7 +73,7 @@ function BookView({
   const deskRef = useRef<HTMLDivElement | null>(null);
   const touchX = useRef<number | null>(null);
 
-  const [dims, setDims] = useState<Dims>({ colW: 0, colH: 0, padX: 0, padY: 0, pw: 0, ph: 0 });
+  const [dims, setDims] = useState<Dims>({ vw: 0, vh: 0 });
   const [leaves, setLeaves] = useState<Leaf[]>([{ kind: "title", theme: scenes[0].theme }]);
   const [current, setCurrent] = useState(0);
   const [ambientPct, setAmbientPct] = useState(100);
@@ -89,11 +86,7 @@ function BookView({
     const ro = new ResizeObserver(() => {
       const r = el.getBoundingClientRect();
       if (r.width <= 0 || r.height <= 0) return;
-      const colW = Math.min(620, r.width * 0.88);
-      const colH = Math.min(r.height * 0.84, 880);
-      const padX = Math.min(28, Math.max(10, colW * 0.045));
-      const padY = Math.min(40, Math.max(30, colW * 0.05));
-      setDims({ colW, colH, padX, padY, pw: Math.max(80, colW - padX * 2), ph: Math.max(80, colH - padY * 2) });
+      setDims({ vw: r.width, vh: r.height });
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -155,7 +148,14 @@ function BookView({
     current === 0 ? "Chapter Opening" : current === last ? "End of Chapter" : `Page ${current} of ${last}`;
   const progress = last > 0 ? (current / last) * 100 : 0;
 
-  const colWrap: React.CSSProperties = { position: "absolute", inset: 0, padding: `${dims.padY}px ${dims.padX}px`, overflowY: "auto", overflowX: "hidden" };
+  // Reading column sized from the current scene's layout (column / wide / full),
+  // so an author can make a scene use the whole screen.
+  const colW = layoutColumnPx(theme.layout, dims.vw);
+  const colH = Math.min(dims.vh * 0.86, 1100);
+  const padX = Math.min(30, Math.max(12, colW * 0.045));
+  const padY = Math.min(44, Math.max(30, colW * 0.05));
+
+  const colWrap: React.CSSProperties = { position: "absolute", inset: 0, padding: `${padY}px ${padX}px`, overflowY: "auto", overflowX: "hidden" };
   (colWrap as Record<string, string | number>)["--leaf-accent"] = accent;
 
   return (
@@ -216,8 +216,8 @@ function BookView({
 
       {/* reading column */}
       <div style={{ position: "absolute", inset: 0, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        {dims.colW > 0 && (
-          <div style={{ position: "relative", width: dims.colW, height: dims.colH }}>
+        {colW > 0 && (
+          <div style={{ position: "relative", width: colW, height: colH }}>
             <div style={colWrap}>
               <div key={current} style={{ position: "relative", minHeight: "100%" }}>
                 <LeafBody leaf={leaves[current]} chapterTitle={chapterTitle} bookTitle={bookTitle} authorName={authorName} bookBlurb={bookBlurb} position={position} next={next} bookSlug={bookSlug} />

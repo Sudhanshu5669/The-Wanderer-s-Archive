@@ -71,6 +71,41 @@ export interface SceneTheme {
   stickers?: Sticker[];
   vignetteStrength?: number; // 0..1
   dropCap?: boolean; // enlarge the first letter of the scene (opt-in, off by default)
+  layout?: SceneLayout; // how wide the scene uses the screen (default "column")
+}
+
+// How much of the screen a scene fills. "column" is the readable default;
+// "wide" and "full" let a scene use the whole screen (per the cinematic design).
+export type SceneLayout = "column" | "wide" | "full";
+
+export const SCENE_LAYOUTS: { key: SceneLayout; label: string; note: string }[] = [
+  { key: "column", label: "Column", note: "readable width" },
+  { key: "wide", label: "Wide", note: "more of the screen" },
+  { key: "full", label: "Full", note: "fills the screen" },
+];
+
+/** Reading-column pixel width for a layout, given the viewport width. */
+export function layoutColumnPx(layout: SceneLayout | undefined, vw: number): number {
+  switch (layout) {
+    case "wide":
+      return Math.min(1040, vw * 0.92);
+    case "full":
+      return Math.min(1680, vw * 0.96);
+    default:
+      return Math.min(620, vw * 0.88);
+  }
+}
+
+/** CSS max-width for the editor stage so it mirrors the reader column. */
+export function layoutMaxWidthCss(layout?: SceneLayout): string {
+  switch (layout) {
+    case "wide":
+      return "min(1040px, 96%)";
+    case "full":
+      return "min(1680px, 98%)";
+    default:
+      return "min(620px, 100%)";
+  }
 }
 
 export function defaultTheme(): SceneTheme {

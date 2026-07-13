@@ -11,8 +11,9 @@ export async function POST(req: Request) {
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
-  if (file.size > 12 * 1024 * 1024) {
-    return NextResponse.json({ error: "File too large (max 12MB)" }, { status: 413 });
+  // Images are stored inline as base64 in the DB, so keep them small.
+  if (file.size > 3 * 1024 * 1024) {
+    return NextResponse.json({ error: "File too large (max 3MB)" }, { status: 413 });
   }
   const { url } = await saveUpload(file);
   return NextResponse.json({ url });
