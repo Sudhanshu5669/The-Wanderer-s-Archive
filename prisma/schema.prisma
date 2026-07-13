@@ -1,0 +1,88 @@
+// Sudhanshu's Wanderer Archives — data model.
+// Portable on purpose: enums are stored as Strings and structured data as
+// JSON-encoded Strings, so this exact schema runs on SQLite (local dev) and
+// Postgres (deploy) with only a provider + connection-string change.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// The single Archivist (Sudhanshu).
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+// A Book is a shelf item: either a SINGLE book (one implicit Story) or a
+// COLLECTION of Stories.
+model Book {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  blurb      String   @default("")
+  coverUrl   String?
+  genres     String   @default("[]") // JSON array of strings
+  type       String   @default("SINGLE") // SINGLE | COLLECTION
+  visibility String   @default("DRAFT") // PUBLIC | HIDDEN | DRAFT
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  stories    Story[]
+}
+
+// A Story belongs to a Book. SINGLE books have exactly one (auto-created).
+model Story {
+  id       String    @id @default(cuid())
+  bookId   String
+  book     Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  title    String    @default("")
+  slug     String    @default("main")
+  blurb    String    @default("")
+  coverUrl String?
+  order    Int       @default(0)
+  chapters Chapter[]
+
+  @@unique([bookId, slug])
+}
+
+// A Chapter holds the actual writing. `content` is a JSON-encoded document:
+// { scenes: Scene[] } where each Scene = { id, theme: SceneTheme, doc, html }.
+model Chapter {
+  id          String   @id @default(cuid())
+  storyId     String
+  story       Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  title       String
+  slug        String
+  order       Int      @default(0)
+  showInIndex Boolean  @default(true)
+  content     String   @default("{\"scenes\":[]}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([storyId, slug])
+}
+
+// Reusable named scene themes ("Hell", "Heaven", "Night", "Brutal B&W").
+model ThemePreset {
+  id        String   @id @default(cuid())
+  name      String
+  config    String // JSON-encoded SceneTheme
+  createdAt DateTime @default(now())
+}
+
+// Uploaded media (covers, backgrounds, stickers, in-page photos).
+model Asset {
+  id        String   @id @default(cuid())
+  url       String
+  kind      String   @default("PHOTO") // COVER | BACKGROUND | STICKER | PHOTO
+  width     Int?
+  height    Int?
+  createdAt DateTime @default(now())
+}
