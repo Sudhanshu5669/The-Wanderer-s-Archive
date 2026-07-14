@@ -158,6 +158,10 @@ function BookView({
   const colWrap: React.CSSProperties = { position: "absolute", inset: 0, padding: `${padY}px ${padX}px`, overflowY: "auto", overflowX: "hidden" };
   (colWrap as Record<string, string | number>)["--leaf-accent"] = accent;
 
+  // The scene's edge treatment (vignette / fade-to-color / burn) frames every
+  // scene — gradient and solid backgrounds too, not just image ones.
+  const fade = edgeFadeBackground(theme);
+
   return (
     <div
       ref={deskRef}
@@ -174,13 +178,15 @@ function BookView({
       {/* full-screen themed background (cross-fades between scenes) */}
       <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 0, background: fullBackground(theme), transition: "background .8s ease" }} />
 
-      {/* scene background image + edge fade */}
+      {/* scene background image */}
       {theme.background.kind === "image" && theme.background.imageUrl && (
-        <>
-          <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 1, backgroundImage: `url(${theme.background.imageUrl})`, backgroundSize: theme.background.imageFit === "tile" ? "auto" : theme.background.imageFit ?? "cover", backgroundRepeat: theme.background.imageFit === "tile" ? "repeat" : "no-repeat", backgroundPosition: "center", opacity: 0.9 }} />
-          {edgeFadeBackground(theme) && <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 1, background: edgeFadeBackground(theme) as string }} />}
-        </>
+        <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 1, backgroundImage: `url(${theme.background.imageUrl})`, backgroundSize: theme.background.imageFit === "tile" ? "auto" : theme.background.imageFit ?? "cover", backgroundRepeat: theme.background.imageFit === "tile" ? "repeat" : "no-repeat", backgroundPosition: "center", opacity: 0.9 }} />
       )}
+
+      {/* scene edge fade / vignette / burn — sits above the background & ambient
+          particles (z2) but below the reading column (z10) so it frames without
+          dimming the prose. Renders for every background kind. */}
+      {fade && <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none", background: fade }} />}
 
       {/* ambient particles */}
       <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }}>
