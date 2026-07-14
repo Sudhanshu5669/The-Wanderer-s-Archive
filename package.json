@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS=--use-system-ca next dev",
-    "build": "NODE_OPTIONS=--use-system-ca prisma generate && NODE_OPTIONS=--use-system-ca next build",
-    "start": "NODE_OPTIONS=--use-system-ca next start",
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
     "lint": "eslint",
-    "seed": "NODE_OPTIONS=--use-system-ca tsx prisma/seed.ts",
-    "migrate": "NODE_OPTIONS=--use-system-ca prisma migrate dev",
-    "db:studio": "NODE_OPTIONS=--use-system-ca prisma studio"
+    "seed": "tsx prisma/seed.ts",
+    "migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
@@ -24,6 +24,7 @@
     "jose": "^6.2.3",
     "next": "16.2.10",
     "pg": "^8.13.1",
+    "sharp": "^0.34.5",
     "prisma": "^7.8.0",
     "react": "19.2.4",
     "react-dom": "19.2.4"
