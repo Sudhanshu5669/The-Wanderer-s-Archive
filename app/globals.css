@@ -537,6 +537,18 @@ label.lbl {
   transform: translateY(-6px);
   box-shadow: 0 28px 60px rgba(0, 0, 0, 0.62);
 }
+/* Book landing cover column: only pin it once the layout is genuinely two
+   columns. On a phone the grid collapses to one column, and a sticky cover
+   would stay pinned while the About/Index column scrolls over it. */
+.book-cover-col {
+  position: static;
+}
+@media (min-width: 900px) {
+  .book-cover-col {
+    position: sticky;
+    top: 40px;
+  }
+}
 .index-chapter-row {
   transition: background 0.25s ease, padding-left 0.25s ease;
 }

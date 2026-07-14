@@ -62,17 +62,27 @@ export default async function BookLandingPage({ params }: PageProps<"/book/[book
 
       <div style={{ position: "relative", zIndex: 2, maxWidth: 1140, margin: "0 auto", padding: "clamp(28px,5vw,60px) clamp(20px,5vw,48px) 100px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(320px,100%),1fr))", gap: "clamp(40px,6vw,84px)", alignItems: "start" }}>
         {/* cover column */}
-        <div style={{ animation: "shelfFadeUp .7s ease both", position: "sticky", top: 40 }}>
+        <div className="book-cover-col" style={{ animation: "shelfFadeUp .7s ease both" }}>
           <div style={{ position: "relative", width: "min(360px,80vw)", margin: "0 auto", aspectRatio: "0.66", borderRadius: "4px 8px 8px 4px", background: mood.bg, boxShadow: "0 34px 70px rgba(0,0,0,.6), inset 0 0 90px rgba(0,0,0,.4)", overflow: "hidden" }}>
-            <div aria-hidden style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: 16, background: "linear-gradient(90deg, rgba(0,0,0,.45), transparent)" }} />
-            <div aria-hidden style={{ position: "absolute", inset: 0, background: mood.sheen }} />
-            <div style={{ position: "relative", zIndex: 2, height: "100%", display: "flex", flexDirection: "column", padding: "clamp(26px,4vw,40px)" }}>
-              <div style={{ fontSize: 10, letterSpacing: ".4em", textTransform: "uppercase", color: mood.tag }}>{genres[0] || "Archive"}{book.type === "COLLECTION" ? " · Collection" : ""}</div>
-              <div style={{ flex: 1 }} />
-              <h1 style={{ fontFamily: "var(--font-cormorant), serif", fontWeight: 500, fontSize: "clamp(40px,7vw,56px)", lineHeight: 0.98, margin: 0, color: mood.ink }}>{book.title}</h1>
-              <div style={{ width: 44, height: 1, background: mood.rule, margin: "18px 0 14px" }} />
-              <div style={{ fontFamily: "var(--font-cormorant), serif", fontStyle: "italic", fontSize: 17, color: "rgba(233,229,216,.62)" }}>Sudhanshu</div>
-            </div>
+            {book.coverUrl ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={book.coverUrl} alt={`Cover of ${book.title}`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                <div aria-hidden style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: 16, background: "linear-gradient(90deg, rgba(0,0,0,.45), transparent)" }} />
+              </>
+            ) : (
+              <>
+                <div aria-hidden style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: 16, background: "linear-gradient(90deg, rgba(0,0,0,.45), transparent)" }} />
+                <div aria-hidden style={{ position: "absolute", inset: 0, background: mood.sheen }} />
+                <div style={{ position: "relative", zIndex: 2, height: "100%", display: "flex", flexDirection: "column", padding: "clamp(26px,4vw,40px)" }}>
+                  <div style={{ fontSize: 10, letterSpacing: ".4em", textTransform: "uppercase", color: mood.tag }}>{genres[0] || "Archive"}{book.type === "COLLECTION" ? " · Collection" : ""}</div>
+                  <div style={{ flex: 1 }} />
+                  <h1 style={{ fontFamily: "var(--font-cormorant), serif", fontWeight: 500, fontSize: "clamp(40px,7vw,56px)", lineHeight: 0.98, margin: 0, color: mood.ink }}>{book.title}</h1>
+                  <div style={{ width: 44, height: 1, background: mood.rule, margin: "18px 0 14px" }} />
+                  <div style={{ fontFamily: "var(--font-cormorant), serif", fontStyle: "italic", fontSize: 17, color: "rgba(233,229,216,.62)" }}>Sudhanshu</div>
+                </div>
+              </>
+            )}
           </div>
           {firstChapter && (
             <Link href={`/book/${book.slug}/${firstChapter.slug}`} style={{ display: "block", width: "min(360px,80vw)", margin: "26px auto 0", textAlign: "center", background: "linear-gradient(180deg,#c9a86b,#b2915a)", color: "#1a1408", fontFamily: "var(--font-spectral), serif", fontSize: 12, letterSpacing: ".26em", textTransform: "uppercase", padding: 16, borderRadius: 3, boxShadow: "0 12px 30px rgba(201,168,107,.22)" }}>Begin Reading</Link>
